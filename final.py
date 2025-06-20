@@ -30,12 +30,11 @@ if selected_region != "All":
 st.title("🌊 Rising Waters: A Closer Look at Sea Level Changes")
 st.subheader("A visual narrative exploring changes in global and regional sea levels.")
 
-st.markdown("Sea levels have risen at an accelerating pace due to melting glaciers and thermal expansion, with wide variation across geographic regions. This dashboard combines global averages and regional trends to answer the question:")
-st.markdown(
-    '<div style="text-align: center; font-size: 32px; font-weight: bold;">How have sea levels changed over time? Where are these changes most dramatic?</div>',
-    unsafe_allow_html=True
-)
-st.markdown("")
+st.markdown("Sea levels have risen at an accelerating pace due to melting glaciers and thermal expansion, with wide variation across geographic regions. This dashboard combines global averages and regional trends to answer the questions:")
+st.markdown("""
+1. **How have sea levels changed over time?**
+2. **Where are these changes most dramatic?**
+""")
 
 # Box Chart
 st.header("📍 Annual Sea Level Changes by Region")
@@ -63,22 +62,65 @@ st.markdown("The heatmap above displays sea level change across different region
 st.header("📈 Global Sea Level Trends Over Time")
 st.markdown("The line chart below illustrates **overall sea level trends** across all measured regions. It provides a clearer view of how the global mean sea level has shifted each year.")
 
-st.markdown("*This line chart also reflects the region you select in the sidebar.*")
+st.markdown("*Use the slider to select the range of years you would like to explore. The **average sea level change** and **standard deviation** will change in accordance to the selected range. This line chart will also reflect the region you select in the sidebar!*")
 
-overall = alt.Chart(filtered).mark_line().encode(
-    x=alt.X("Date:T"),
-    y=alt.Y("Value:Q"),
+min_year = int(filtered['Year'].min())
+max_year = int(filtered['Year'].max())
+
+# Sidebar or main slider for brushing
+st.subheader("📅 Select a Year Range to Analyze")
+year_range = st.slider("Select year range:", min_value=min_year, max_value=max_year, value=(1992, 2024))
+
+# Filter data based on slider (emulating brush)
+filtered_range = filtered[(filtered['Year'] >= year_range[0]) & (filtered['Year'] <= year_range[1])]
+
+# Line chart
+line_chart = alt.Chart(filtered_range).mark_line().encode(
+    x=alt.X("Date:T", title="Year"),
+    y=alt.Y("Value:Q", title="Mean Sea Level Change (mm)"),
     tooltip=["Year", "Value"]
 ).properties(
     title="Sea Level Changes Over Time"
 ).interactive()
 
-st.altair_chart(overall)
+st.altair_chart(line_chart, use_container_width=True)
+
+# Calculated metrics
+avg_value = filtered_range['Value'].mean()
+std_value = filtered_range['Value'].std()
+
+col1, col2, col3, col4 = st.columns([1, 2, 2, 1])  # Add padding columns to center
+
+with col2:
+    st.markdown(f"""
+        <div style="text-align: center;">
+            <h3>📈 Avg Sea Level Change</h3>
+            <h1 style="color:#1f77b4;">{avg_value:.2f} mm</h1>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+        <div style="text-align: center;">
+            <h3>📊 Std Deviation (Volatility)</h3>
+            <h1 style="color:#ff7f0e;">{std_value:.2f} mm</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("This line chart shows the **global average sea level change** over time. We see a **general upward trend**, with some years exhibiting sharper increases than others. This suggests that sea level rise is not only ongoing but **subject to short-term variability**, possibly due to climatic cycles or regional anomalies.")
 
 year_average = filtered.groupby("Year", as_index=False)["Value"].mean()
 year_average["Change"] = year_average["Value"].diff()
+
+# Key Insights & Values - #1
+st.header("🔍 Key Insights")
+
+col1, col2, col3, col4 = st.columns(4)
+
+col1.metric("🌊 Global Avg. Change", "36.05 mm")
+col2.metric("📈 Highest Rise", "511.93 mm", "Baltic Sea, 2015")
+col3.metric("⚠️ Most Volatile Region", "Baltic Sea", "Std Dev: 155.91 mm")
+col4.metric("🌐 Regions with Upward Trend", "100%")
 
 # Volatility Bar Chart
 st.header("🌐 Regional Volatility in Sea Level Change")
