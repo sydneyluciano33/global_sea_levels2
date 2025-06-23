@@ -23,16 +23,12 @@ data2 = data[data['Year'] <= 2024]
 
 filtered = data2.copy()
 
-#if selected_source != "All":
-  #  filtered = filtered[filtered["Indicator"] == selected_source]
-#if selected_region != "All":
-   # filtered = filtered[filtered["Measure"] == selected_region]
+
 if "All" in selected_region or not selected_region:
     filtered = data2.copy()
 else:
     filtered = data2[data2["Measure"].isin(selected_region)]
-#if selected_region:
-   # filtered = filtered[filtered["Measure"].isin(selected_region)]
+
 # Introduction
 st.title("🌊 Rising Waters: A Closer Look at Sea Level Changes")
 st.subheader("A visual narrative exploring changes in global and regional sea levels.")
@@ -46,7 +42,9 @@ st.markdown("")
 
 # Box Chart
 st.header("📍 Annual Sea Level Changes by Region")
+st.markdown("*Use the selection box to choose regions of interest. Select All in order to view every region or filter your choices to compare and contrast particular regions.*")
 st.markdown("This heatmap shows how sea levels have shifted across regions and years. Darker colors represent **greater sea level increases**. Use the sidebar to select a specific region for closer inspection.")
+st.markdown("*Hover over boxes within the heatmap to read the tooltips for more details on sea level changes in each region and year.*")
 
 heatmap = alt.Chart(filtered).mark_bar().encode(
     x=alt.X("Year:O"),
@@ -63,9 +61,13 @@ st.markdown("The heatmap above displays sea level change across different region
 # Line / Frequency Chart
 st.header("📈 Global Sea Level Trends Over Time")
 st.markdown("The line chart below illustrates **overall sea level trends** across all measured regions. It provides a clearer view of how the global mean sea level has shifted each year.")
-overall = alt.Chart(filtered).mark_line().encode(
+st.markdown("*Hover over the line to see the exact values for each year.* This chart helps us understand the **long-term trajectory of sea level changes** and how they might impact coastal communities globally.")  
+st.markdown("*The line chart has zoom and pan capabilities, allowing you to focus on specific time periods or trends. Use the mouse wheel or drag to zoom in and out, or click and drag to pan across the chart.*")
+
+overall = alt.Chart(filtered).mark_line(color="#c0392b").encode(
     x=alt.X("Date:T"),
-    y=alt.Y("Value:Q"),
+    y=alt.Y("Value:Q", title="Mean Sea Level Change (mm)"),
+    #color=alt.Color("Value:Q", scale=alt.Scale(scheme="lightgreyred"), title="Change in Mean Sea Level"),
     tooltip=["Year", "Value"]
 ).properties(
     title="Sea Level Changes Over Time"
@@ -80,7 +82,9 @@ year_average["Change"] = year_average["Value"].diff()
 
 # Volatility Bar Chart
 st.header("🌐 Regional Volatility in Sea Level Change")
-st.markdown("Not all regions experience sea level change equally. Below, we highlight the **10 most volatile regions**, meaning they have the **highest standard deviation in sea level change**. Click a region to explore its pattern over time.")
+st.markdown("Not all regions experience sea level change equally. Below, we highlight the **10 most volatile regions**, meaning they have the **highest standard deviation in sea level change**. *Click a region to explore its pattern over time.*")
+st.markdown("*Once you select a region, scroll down to see how its volatility compares to the **yearly average sea level change** across all regions. This helps us understand which areas are experiencing the most **inconsistent or unpredictable changes** in sea level.*")
+
 average = alt.Chart(year_average).mark_line(point=True).encode(
     x=alt.X("Year:O"),
     y=alt.Y("Value:Q", title="Average Sea Level Change (mm)"),
@@ -89,7 +93,9 @@ average = alt.Chart(year_average).mark_line(point=True).encode(
     title="Average Sea Level Change by Year",
 )
 
+st.markdown("*Hover over the bars to see the exact volatility values for each region.*")
 st.markdown("The bar chart highlights the **top 10 most volatile regions**, measured by the standard deviation in their annual sea level change. Volatility here reflects how **inconsistent or fluctuating** sea levels have been in each region. This matters because **volatile regions may face unpredictable flooding risks**, complicating long-term planning.")
+
 
 
 # Always use the full dataset for volatility calculation
@@ -165,7 +171,7 @@ final_chart = (points + average_line).properties(
 #st.altair_chart(final_chart, use_container_width=True)
 
 
-st.write("*Pick a region from the top 10 most volatile sea regions. Then, scroll down and examine how their volatility compares to the yearly average of all sea regions each year.*")
+#st.write("*Pick a region from the top 10 most volatile sea regions. Then, scroll down and examine how their volatility compares to the yearly average of all sea regions each year.*")
 st.altair_chart(volatile_chart & final_chart, use_container_width=True)
 
 st.markdown("In this final chart, we compare selected volatile regions to the **global average sea level change**. Each colored dot represents a region’s sea level in a specific year, while the **black line shows the global average**. This makes it easy to see **which regions spike above or fall below the global trend** — reinforcing the idea that while the sea is rising everywhere, **some regions experience it faster and more erratically**.")
