@@ -12,9 +12,11 @@ st.sidebar.header("Choose a Region To View")
 #source = ["All"] + sorted(data["Indicator"].unique())
 region = ["All"] + sorted(data["Measure"].unique())
 
+
 st.sidebar.subheader("The first two charts are connected to the region selected and will display corresponding data.")
 #selected_source = st.sidebar.selectbox("Data Source", source)
-selected_region = st.sidebar.selectbox("Region", region)
+selected_region =  st.sidebar.multiselect("Region(s)", region, default="All")
+#st.sidebar.selectbox("Region", region)
 
 # Apply filters for interactive views
 data2 = data[data['Year'] <= 2024]
@@ -23,9 +25,14 @@ filtered = data2.copy()
 
 #if selected_source != "All":
   #  filtered = filtered[filtered["Indicator"] == selected_source]
-if selected_region != "All":
-    filtered = filtered[filtered["Measure"] == selected_region]
-
+#if selected_region != "All":
+   # filtered = filtered[filtered["Measure"] == selected_region]
+if "All" in selected_region or not selected_region:
+    filtered = data2.copy()
+else:
+    filtered = data2[data2["Measure"].isin(selected_region)]
+#if selected_region:
+   # filtered = filtered[filtered["Measure"].isin(selected_region)]
 # Introduction
 st.title("🌊 Rising Waters: A Closer Look at Sea Level Changes")
 st.subheader("A visual narrative exploring changes in global and regional sea levels.")
