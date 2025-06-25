@@ -83,7 +83,7 @@ filtered_range = filtered[(filtered['Year'] >= year_range[0]) & (filtered['Year'
 
 overall = alt.Chart(filtered_range).mark_line(color="#c0392b").encode(
     x=alt.X("Date:T"),
-    y=alt.Y("Value:Q"),
+    y=alt.Y("Value:Q", title="Mean Sea Level Change (mm)"),
     tooltip=["Year", "Value"]
 ).properties(
     title="Sea Level Changes Over Time"
