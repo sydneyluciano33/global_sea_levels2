@@ -50,6 +50,7 @@ st.markdown("""
 ***TIPS:***
 1. *Use the sidebar to filter this chart by region. This filter only applies to the first two charts.*  
 2. *You can zoom in on the chart by scrolling or pinching.*
+3. *Hover over a bar to see the exact sea level change for that year and region.*
 """)
 
 heatmap = alt.Chart(filtered).mark_bar().encode(
@@ -69,8 +70,18 @@ st.header("📈 Global Sea Level Trends Over Time")
 st.markdown("The line chart below illustrates **overall sea level trends** across all measured regions. It provides a clearer view of how the global mean sea level has shifted each year.")
 
 st.markdown("*This line chart also reflects the region you select in the sidebar.*")
+st.markdown("*Use the slider to select the range of years you would like to explore. The **average sea level change** and **standard deviation** will change in accordance to the selected range. This line chart will also reflect the region you select in the sidebar!*")
 
-overall = alt.Chart(filtered).mark_line(color="#c0392b").encode(
+min_year = int(filtered['Year'].min())
+max_year = int(filtered['Year'].max())
+
+# Sidebar or main slider for brushing
+st.subheader("📅 Select a Year Range to Analyze")
+year_range = st.slider("Select year range:", min_value=min_year, max_value=max_year, value=(1992, 2024))
+filtered_range = filtered[(filtered['Year'] >= year_range[0]) & (filtered['Year'] <= year_range[1])]
+
+
+overall = alt.Chart(filtered_range).mark_line(color="#c0392b").encode(
     x=alt.X("Date:T"),
     y=alt.Y("Value:Q"),
     tooltip=["Year", "Value"]
@@ -79,6 +90,32 @@ overall = alt.Chart(filtered).mark_line(color="#c0392b").encode(
 ).interactive()
 
 st.altair_chart(overall)
+
+st.markdown("This line chart shows the **global average sea level change** over time. We see a **general upward trend**, with some years exhibiting sharper increases than others. This suggests that sea level rise is not only ongoing but **subject to short-term variability**, possibly due to climatic cycles or regional anomalies.")
+
+year_average = filtered.groupby("Year", as_index=False)["Value"].mean()
+year_average["Change"] = year_average["Value"].diff()
+
+# Calculated metrics
+avg_value = filtered_range['Value'].mean()
+std_value = filtered_range['Value'].std()
+col1, col2, col3, col4 = st.columns([1, 2, 2, 1])  # Add padding columns to center
+
+with col2:
+    st.markdown(f"""
+        <div style="text-align: center;">
+            <h3>📈 Avg Sea Level Change</h3>
+            <h1 style="color:#1f77b4;">{avg_value:.2f} mm</h1>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col3:
+    st.markdown(f"""
+        <div style="text-align: center;">
+            <h3>📊 Std Deviation (Volatility)</h3>
+            <h1 style="color:#ff7f0e;">{std_value:.2f} mm</h1>
+        </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("This line chart shows the **global average sea level change** over time. We see a **general upward trend**, with some years exhibiting sharper increases than others. This suggests that sea level rise is not only ongoing but **subject to short-term variability**, possibly due to climatic cycles or regional anomalies.")
 
